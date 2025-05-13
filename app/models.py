@@ -28,6 +28,8 @@ class User(db.Model):
     # Отношения
     created_tasks = db.relationship('Task', foreign_keys='Task.author_id', backref='author', lazy='dynamic')
     assigned_tasks = db.relationship('Task', foreign_keys='Task.assignee_id', backref='assignee', lazy='dynamic')
+    time_logs_created = db.relationship('TimeLog', foreign_keys='TimeLog.logged_by_id', backref='logger', lazy='dynamic')
+    time_logs_for_user = db.relationship('TimeLog', foreign_keys='TimeLog.user_id', backref='user', lazy='dynamic')
 
     @property
     def password(self):
@@ -147,6 +149,9 @@ class Task(db.Model):
     started_at = db.Column(db.DateTime, nullable=True)
     completed_at = db.Column(db.DateTime, nullable=True)
 
+    # Отношения
+    time_logs = db.relationship('TimeLog', backref='task', lazy='dynamic', cascade='all, delete-orphan')
+
     def __repr__(self):
         return f'<Task {self.code}: {self.title}>'
 
@@ -154,3 +159,22 @@ class Task(db.Model):
     def status(self):
         """Возвращает статус задачи на основе колонки"""
         return self.column.name if self.column else "Не определен"
+
+
+class TimeLog(db.Model):
+    """Модель для хранения истории логирования времени"""
+    __tablename__ = 'time_logs'
+
+    id = db.Column(db.Integer, primary_key=True)
+    task_id = db.Column(db.Integer, db.ForeignKey('tasks.id'), nullable=False)
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)  # Для кого залогировано время
+    logged_by_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)  # Кто залогировал время
+    
+    spent_hours = db.Column(db.Float, nullable=False)  # Залогированное время в часах
+    remaining_hours = db.Column(db.Float)  # Оставшееся время на момент логирования
+    comment = db.Column(db.Text)  # Опциональный комментарий к логированию
+    
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+
+    def __repr__(self):
+        return f'<TimeLog {self.id}: {self.spent_hours}h on Task {self.task_id}>'

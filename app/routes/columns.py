@@ -26,7 +26,20 @@ def get_board_columns(board_id):
             'id': task.id,
             'code': task.code,
             'title': task.title,
-            'priority': task.priority
+            'priority': task.priority,
+            'description': task.description,
+            'estimated_time': task.estimated_time,
+            'remaining_time': task.remaining_time,
+            'spent_time': task.spent_time,
+            'author': task.author.username if task.author else None,
+            'author_id': task.author_id,
+            'assignee': task.assignee.username if task.assignee else None,
+            'assignee_id': task.assignee_id,
+            'status': task.status,
+            'created_at': task.created_at.isoformat(),
+            'updated_at': task.updated_at.isoformat(),
+            'started_at': task.started_at.isoformat() if task.started_at else None,
+            'completed_at': task.completed_at.isoformat() if task.completed_at else None
         } for task in column.tasks]
     } for column in columns]
 
