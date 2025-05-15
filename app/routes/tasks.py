@@ -283,6 +283,10 @@ def update_task(task_id):
     if not task:
         return jsonify({'message': 'Задача не найдена'}), 404
 
+    current_user = get_current_user()
+    if not current_user:
+        return jsonify({'message': 'Пользователь не аутентифицирован'}), 401
+
     data = request.get_json()
 
     # Обновляем поля задачи
@@ -296,6 +300,11 @@ def update_task(task_id):
         task.priority = data['priority']
 
     if 'column_id' in data:
+        if not (current_user.id == task.author_id or 
+                current_user.id == task.assignee_id or 
+                current_user.is_manager()):
+            return jsonify({'message': 'У вас нет прав для перемещения этой задачи'}), 403
+            
         # Проверяем существование колонки
         column = Column.query.get(data['column_id'])
         if column:
